@@ -125,10 +125,10 @@ export function LogQLEditor({
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent className="flex-1 min-h-0">
+      <CardContent className="flex-1 min-h-full">
         <Editor
           className={cn(
-            "h-full",
+            "h-full min-h-hull",
             isLoading
               ? "pointer-events-none opacity-50 select-none grayscale-50"
               : "",

@@ -112,14 +112,13 @@ export function Main() {
   return (
     <main className={"p-4 w-full min-h-screen flex flex-col gap-3 bg-gray-200"}>
       <ResizablePanelGroup direction="vertical" className="flex-1 min-h-0">
-        <ResizablePanel defaultSize={35} minSize={30}>
+        <ResizablePanel defaultSize={55}>
           <ResizablePanelGroup
             direction="horizontal"
             className="h-full min-h-0"
           >
             <ResizablePanel
               defaultSize={70}
-              minSize={50}
               className="flex flex-col min-h-0"
             >
               <div className="flex h-full w-full flex-col gap-2 min-h-0 min-w-[20rem]">
@@ -147,21 +146,19 @@ export function Main() {
               </div>
             </ResizablePanel>
             <ResizableHandle className={"px-1 hidden md:flex bg-gray-200"} />
-            <ResizablePanel defaultSize={30} minSize={20} className="hidden md:flex">
+            <ResizablePanel defaultSize={30} className="hidden md:flex">
               <Docs />
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle className={"py-1 bg-gray-200"} />
-        <ResizablePanel defaultSize={65} minSize={10} className="min-h-0">
-          <div className="h-full overflow-auto">
-            <QueryResults
-              query={query}
-              data={results}
-              isLoading={loading}
-              execMode={execMode}
-            />
-          </div>
+        <ResizablePanel defaultSize={45} className="flex min-h-0 h-full flex-col">
+          <QueryResults
+            query={query}
+            data={results}
+            isLoading={loading}
+            execMode={execMode}
+          />
         </ResizablePanel>
       </ResizablePanelGroup>
     </main>

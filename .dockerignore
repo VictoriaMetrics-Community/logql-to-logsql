@@ -24,7 +24,6 @@
 **/*.sw?
 
 .git
-vendor
 gocache-for-docker
 .idea
 .zed

@@ -37,8 +37,8 @@ export function QueryResults({
   if (!query && !data) return null;
 
   return (
-    <Card className={"max-h-full py-4"}>
-      <CardHeader className={"sticky top-0 z-5 bg-white"}>
+    <Card className={"py-4 flex-1 min-h-0"}>
+      <CardHeader className={"shrink-0 bg-white"}>
         <CardTitle>
           {execMode === "query" ? "LogsQL query results" : "LogsQL query"}
         </CardTitle>
@@ -49,8 +49,10 @@ export function QueryResults({
         )}
       </CardHeader>
       {!!data && (
-        <CardContent className={"overflow-y-auto"}>
-          <QueryResultsTable data={data} />
+        <CardContent className={"flex flex-1 min-h-0"}>
+          <div className="flex-1 min-h-0 overflow-auto [-webkit-overflow-scrolling:touch]">
+            <QueryResultsTable data={data} />
+          </div>
         </CardContent>
       )}
     </Card>
