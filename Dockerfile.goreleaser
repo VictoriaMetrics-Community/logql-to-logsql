@@ -1,0 +1,9 @@
+FROM alpine:3.23
+RUN addgroup -g 1000 -S logql-to-logsql && adduser -u 1000 -S logql-to-logsql -G logql-to-logsql
+ARG TARGETPLATFORM
+COPY --chown=logql-to-logsql:logql-to-logsql $TARGETPLATFORM/logql-to-logsql /usr/local/bin/logql-to-logsql
+RUN chmod +x /usr/local/bin/logql-to-logsql
+USER logql-to-logsql
+WORKDIR /home/logql-to-logsql
+ENTRYPOINT [ "/usr/local/bin/logql-to-logsql" ]
+
