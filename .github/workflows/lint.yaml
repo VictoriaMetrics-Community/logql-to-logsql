@@ -21,10 +21,10 @@ jobs:
       - name: Run ui build
         run: make ui-build
 
-#      - name: golangci-lint
-#        uses: golangci/golangci-lint-action@v9
-#        with:
-#          version: v2.4
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.4
 
       - name: Run lint
         run: make lint
