@@ -24,7 +24,7 @@ github.com/beorn7/perks/quantile
 # github.com/c2h5oh/datasize v0.0.0-20231215233829-aa82cc1e6500
 ## explicit
 github.com/c2h5oh/datasize
-# github.com/cenkalti/backoff/v5 v5.0.2
+# github.com/cenkalti/backoff/v5 v5.0.3
 ## explicit; go 1.23
 github.com/cenkalti/backoff/v5
 # github.com/cespare/xxhash/v2 v2.3.0
@@ -33,8 +33,8 @@ github.com/cespare/xxhash/v2
 # github.com/coreos/go-semver v0.3.1
 ## explicit; go 1.8
 github.com/coreos/go-semver/semver
-# github.com/coreos/go-systemd/v22 v22.5.0
-## explicit; go 1.12
+# github.com/coreos/go-systemd/v22 v22.6.0
+## explicit; go 1.23
 github.com/coreos/go-systemd/v22/activation
 github.com/coreos/go-systemd/v22/journal
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
@@ -94,6 +94,9 @@ github.com/gogo/protobuf/types
 # github.com/gogo/status v1.1.1
 ## explicit; go 1.12
 github.com/gogo/status
+# github.com/golang-jwt/jwt/v5 v5.3.0
+## explicit; go 1.21
+github.com/golang-jwt/jwt/v5
 # github.com/golang/protobuf v1.5.4
 ## explicit; go 1.17
 github.com/golang/protobuf/proto
@@ -181,11 +184,11 @@ github.com/grafana/otel-profiling-go
 github.com/grafana/pyroscope-go/godeltaprof
 github.com/grafana/pyroscope-go/godeltaprof/http/pprof
 github.com/grafana/pyroscope-go/godeltaprof/internal/pprof
-# github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc
+# github.com/grafana/regexp v0.0.0-20250905093917-f7b3be9d1853
 ## explicit; go 1.21
 github.com/grafana/regexp
 github.com/grafana/regexp/syntax
-# github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
+# github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
 ## explicit; go 1.23.0
 github.com/grpc-ecosystem/grpc-gateway/v2/internal/httprule
 github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options
@@ -245,8 +248,8 @@ github.com/jpillora/backoff
 # github.com/json-iterator/go v1.1.12
 ## explicit; go 1.12
 github.com/json-iterator/go
-# github.com/klauspost/compress v1.18.0
-## explicit; go 1.22
+# github.com/klauspost/compress v1.18.2
+## explicit; go 1.23
 github.com/klauspost/compress/flate
 github.com/klauspost/compress/gzip
 github.com/klauspost/compress/internal/le
@@ -309,7 +312,7 @@ github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/prometheus/client_golang v1.23.0
+# github.com/prometheus/client_golang v1.23.2
 ## explicit; go 1.23.0
 github.com/prometheus/client_golang/internal/github.com/golang/gddo/httputil
 github.com/prometheus/client_golang/internal/github.com/golang/gddo/httputil/header
@@ -322,23 +325,23 @@ github.com/prometheus/client_golang/prometheus/push
 # github.com/prometheus/client_model v0.6.2
 ## explicit; go 1.22.0
 github.com/prometheus/client_model/go
-# github.com/prometheus/common v0.65.1-0.20250703115700-7f8b2a0d32d3
-## explicit; go 1.23.0
+# github.com/prometheus/common v0.67.4
+## explicit; go 1.24.0
 github.com/prometheus/common/config
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/model
 github.com/prometheus/common/promslog
 github.com/prometheus/common/version
-# github.com/prometheus/exporter-toolkit v0.14.0
-## explicit; go 1.22
+# github.com/prometheus/exporter-toolkit v0.15.0
+## explicit; go 1.24.0
 github.com/prometheus/exporter-toolkit/web
 # github.com/prometheus/procfs v0.17.0
 ## explicit; go 1.23.0
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/prometheus/prometheus v0.305.1-0.20250806170547-208187eaa19b
-## explicit; go 1.23.0
+# github.com/prometheus/prometheus v0.308.1
+## explicit; go 1.24.0
 github.com/prometheus/prometheus/model/exemplar
 github.com/prometheus/prometheus/model/histogram
 github.com/prometheus/prometheus/model/labels
@@ -530,18 +533,18 @@ go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal/envco
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal/oconf
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal/retry
 go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/internal/transform
-# go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.36.0
+# go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0
 ## explicit; go 1.23.0
 go.opentelemetry.io/otel/exporters/otlp/otlptrace
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/internal/tracetransform
-# go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.36.0
+# go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.38.0
 ## explicit; go 1.23.0
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc/internal
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc/internal/envconfig
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc/internal/otlpconfig
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc/internal/retry
-# go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.36.0
+# go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.38.0
 ## explicit; go 1.23.0
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp/internal
@@ -597,7 +600,7 @@ go.opentelemetry.io/otel/trace
 go.opentelemetry.io/otel/trace/embedded
 go.opentelemetry.io/otel/trace/internal/telemetry
 go.opentelemetry.io/otel/trace/noop
-# go.opentelemetry.io/proto/otlp v1.6.0
+# go.opentelemetry.io/proto/otlp v1.7.1
 ## explicit; go 1.23.0
 go.opentelemetry.io/proto/otlp/collector/logs/v1
 go.opentelemetry.io/proto/otlp/collector/metrics/v1
@@ -625,6 +628,9 @@ go.uber.org/zap/internal/pool
 go.uber.org/zap/internal/stacktrace
 go.uber.org/zap/zapcore
 go.uber.org/zap/zapgrpc
+# go.yaml.in/yaml/v2 v2.4.3
+## explicit; go 1.15
+go.yaml.in/yaml/v2
 # go4.org/netipx v0.0.0-20230125063823-8449b0a6169f
 ## explicit; go 1.18
 go4.org/netipx
@@ -634,7 +640,7 @@ golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
-# golang.org/x/exp v0.0.0-20250711185948-6ae5c78190dc
+# golang.org/x/exp v0.0.0-20250808145144-a408d31f581a
 ## explicit; go 1.23.0
 golang.org/x/exp/slices
 # golang.org/x/mod v0.29.0
@@ -656,7 +662,7 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/netutil
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.31.0
+# golang.org/x/oauth2 v0.32.0
 ## explicit; go 1.24.0
 golang.org/x/oauth2
 golang.org/x/oauth2/clientcredentials
@@ -699,8 +705,8 @@ golang.org/x/tools/internal/stdlib
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
 golang.org/x/tools/internal/versions
-# google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c
-## explicit; go 1.23.0
+# google.golang.org/genproto/googleapis/api v0.0.0-20250929231259-57b25ae835d4
+## explicit; go 1.24.0
 google.golang.org/genproto/googleapis/api
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/api/httpbody
@@ -708,8 +714,8 @@ google.golang.org/genproto/googleapis/api/httpbody
 ## explicit; go 1.24.0
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.75.1
-## explicit; go 1.23.0
+# google.golang.org/grpc v1.76.0
+## explicit; go 1.24.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
