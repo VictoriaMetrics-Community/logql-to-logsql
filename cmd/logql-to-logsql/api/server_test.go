@@ -93,7 +93,7 @@ func TestHandleQueryStatsRangeSuccess(t *testing.T) {
 			if err := req.ParseForm(); err != nil {
 				t.Fatalf("failed to parse form: %v", err)
 			}
-			if got := req.Form.Get("query"); got != `{app="nginx"} | stats by (_stream) rate() as value` {
+			if got := req.Form.Get("query"); got != `{app="nginx"} _time:5m | stats by (_stream) rate() as value` {
 				t.Fatalf("unexpected query sent: %q", got)
 			}
 			if got := req.Form.Get("start"); got != "1" {
@@ -134,7 +134,7 @@ func TestHandleQueryStatsRangeSuccess(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("invalid json response: %v", err)
 	}
-	if resp.LogsQL != `{app="nginx"} | stats by (_stream) rate() as value` {
+	if resp.LogsQL != `{app="nginx"} _time:5m | stats by (_stream) rate() as value` {
 		t.Fatalf("unexpected LogsQL: %s", resp.LogsQL)
 	}
 	if resp.Data != `{"status":"success"}` {

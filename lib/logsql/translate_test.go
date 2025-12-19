@@ -49,7 +49,7 @@ func TestTranslateMetricRate(t *testing.T) {
 	if qi.Kind != QueryKindStats {
 		t.Fatalf("unexpected kind: %q", qi.Kind)
 	}
-	if qi.LogsQL != `{app="nginx"} | stats by (_stream) rate() as value` {
+	if qi.LogsQL != `{app="nginx"} _time:5m | stats by (_stream) rate() as value` {
 		t.Fatalf("unexpected LogsQL: %q", qi.LogsQL)
 	}
 }
@@ -62,7 +62,7 @@ func TestTranslateMetricSumRate(t *testing.T) {
 	if qi.Kind != QueryKindStats {
 		t.Fatalf("unexpected kind: %q", qi.Kind)
 	}
-	if qi.LogsQL != `{app="nginx"} | stats rate() as value` {
+	if qi.LogsQL != `{app="nginx"} _time:5m | stats rate() as value` {
 		t.Fatalf("unexpected LogsQL: %q", qi.LogsQL)
 	}
 }
