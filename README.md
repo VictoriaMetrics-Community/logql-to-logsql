@@ -8,8 +8,8 @@
 
 Web application that provides a simple proof-of-concept UI for querying [VictoriaLogs](https://docs.victoriametrics.com/victorialogs/) or [VictoriaTraces](https://docs.victoriametrics.com/victoriatraces/) data with [Loki LogQL](https://grafana.com/docs/loki/latest/query/).
 
-It can translate [Loki LogQL](https://grafana.com/docs/loki/latest/query/) queries to [VictoriaLogs LogsQL](https://docs.victoriametrics.com/victorialogs/logsql/),
-optionally executing the translated query against a [VictoriaLogs](https://docs.victoriametrics.com/victorialogs/) or [VictoriaTraces](https://docs.victoriametrics.com/victoriatraces/) endpoint.
+It translates [Loki LogQL](https://grafana.com/docs/loki/latest/query/) queries to [VictoriaLogs LogsQL](https://docs.victoriametrics.com/victorialogs/logsql/),
+optionally executes the translated query against a [VictoriaLogs](https://docs.victoriametrics.com/victorialogs/) or [VictoriaTraces](https://docs.victoriametrics.com/victoriatraces/) endpoints.
 
 [![Web UI screenshot](screenshot.png)](https://logql-to-logsql.fly.dev)
 
@@ -112,11 +112,6 @@ Example (`config.json`):
 | `limit`       | int               | Maximum number of rows returned by any query.                                                                           | 1000              |
 
 Please note that VictoriaLogs is called via the backend, so if you are using logql-to-logsql in Docker, localhost refers to the localhost of the container, not your computer.
-
-## Translation coverage
-
-- Log queries: stream selectors, line filters (`|=`, `!=`, `|~`, `!~`), label filters, `json/logfmt/regexp/pattern` parsers (translated to LogsQL pipes), `drop/keep`, `line_format/label_format` (best-effort template conversion).
-- Metric queries (subset): `rate`, `count_over_time`, `sum(...)`, `topk/bottomk`, plus a few `*_over_time` functions with `unwrap`.
 
 ## REST API
 
