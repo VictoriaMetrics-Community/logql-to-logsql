@@ -9,6 +9,7 @@ import (
 
 	lokilog "github.com/grafana/loki/v3/pkg/logql/log"
 	"github.com/grafana/loki/v3/pkg/logql/syntax"
+	prommodel "github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 )
 
@@ -89,12 +90,22 @@ func (b *logsQLBuilder) addFilter(filter string) {
 }
 
 func (b *logsQLBuilder) addLogSelector(expr syntax.LogSelectorExpr) error {
+	return b.addLogSelectorWithFilters(expr, nil)
+}
+
+func (b *logsQLBuilder) addLogSelectorWithFilters(expr syntax.LogSelectorExpr, filters []string) error {
 	switch e := expr.(type) {
 	case *syntax.MatchersExpr:
 		b.sb.WriteString(renderStreamSelector(e.Matchers()))
+		for _, f := range filters {
+			b.addFilter(f)
+		}
 		return nil
 	case *syntax.PipelineExpr:
 		b.sb.WriteString(renderStreamSelector(e.Matchers()))
+		for _, f := range filters {
+			b.addFilter(f)
+		}
 		for _, stage := range e.MultiStages {
 			if err := b.addStage(stage); err != nil {
 				return err
@@ -534,7 +545,11 @@ func translateRangeAggregation(e *syntax.RangeAggregationExpr, grouping *syntax.
 	}
 
 	selector := newLogsQLBuilder()
-	if err := selector.addLogSelector(sel); err != nil {
+	var selectorFilters []string
+	if tf := timeFilterFromLogRange(e.Left); tf != "" {
+		selectorFilters = append(selectorFilters, tf)
+	}
+	if err := selector.addLogSelectorWithFilters(sel, selectorFilters); err != nil {
 		return "", err
 	}
 
@@ -582,6 +597,17 @@ func postFiltersFromUnwrap(u *syntax.UnwrapExpr) []lokilog.LabelFilterer {
 		return nil
 	}
 	return u.PostFilters
+}
+
+func timeFilterFromLogRange(r *syntax.LogRangeExpr) string {
+	if r == nil {
+		return ""
+	}
+	filter := "_time:" + prommodel.Duration(r.Interval).String()
+	if r.Offset != 0 {
+		filter += " offset " + prommodel.Duration(r.Offset).String()
+	}
+	return filter
 }
 
 func rangeAggregationToStatsPipe(e *syntax.RangeAggregationExpr) (string, error) {
