@@ -11,7 +11,7 @@ Web application that provides a simple proof-of-concept UI for querying [Victori
 It translates [Loki LogQL](https://grafana.com/docs/loki/latest/query/) queries to [VictoriaLogs LogsQL](https://docs.victoriametrics.com/victorialogs/logsql/),
 optionally executes the translated query against a [VictoriaLogs](https://docs.victoriametrics.com/victorialogs/) or [VictoriaTraces](https://docs.victoriametrics.com/victoriatraces/) endpoints.
 
-[![Web UI screenshot](screenshot.png)](https://logql-to-logsql.fly.dev)
+[![Web UI screenshot](screenshot.png)](https://play-logql.victoriametrics.com)
 
 ## Highlights
 
@@ -24,7 +24,7 @@ optionally executes the translated query against a [VictoriaLogs](https://docs.v
 
 ### Try without installation
 
-You can try the live demo on **[logql-to-logsql.fly.dev](https://logql-to-logsql.fly.dev)**
+You can try the live demo on **[play-logql.victoriametrics.com](https://play-logql.victoriametrics.com)**
 
 ### Use binaries
 
