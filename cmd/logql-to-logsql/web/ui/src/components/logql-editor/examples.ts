@@ -32,14 +32,39 @@ export const EXAMPLES = [
     logql: `{collector="otel-collector"} | json | trace_id!=""`,
   },
   {
+    id: "json_extract_field",
+    title: "JSON extract field",
+    logql: `{collector="otel-collector"} | json duration="duration"`,
+  },
+  {
+    id: "json_extract_rename",
+    title: "JSON extract + rename",
+    logql: `{collector="otel-collector"} | json duration_ms="duration"`,
+  },
+  {
     id: "logfmt_and_label",
     title: "logfmt parse + filter",
     logql: `{collector="otel-collector"} | logfmt | products >= 10`,
   },
   {
+    id: "logfmt_extract_field",
+    title: "logfmt extract field",
+    logql: `{collector="otel-collector"} | logfmt status="status"`,
+  },
+  {
+    id: "logfmt_extract_rename",
+    title: "logfmt extract + rename",
+    logql: `{collector="otel-collector"} | logfmt status_code="status"`,
+  },
+  {
     id: "drop_labels",
     title: "Drop labels",
     logql: `{collector="otel-collector"} | drop span_id, trace_id`,
+  },
+  {
+    id: "drop_labels_conditional",
+    title: "Drop labels (conditional)",
+    logql: `{collector="otel-collector"} | drop trace_id=~"^abc"`,
   },
   {
     id: "rate",

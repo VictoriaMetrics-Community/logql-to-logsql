@@ -152,17 +152,44 @@ func (b *logsQLBuilder) addStage(stage syntax.StageExpr) error {
 		b.addPipe("decolorize")
 		return nil
 	case *syntax.DropLabelsExpr:
-		if s.HasNamedMatchers() {
-			return &TranslationError{
-				Code:    http.StatusBadRequest,
-				Message: "conditional label drop isn't supported yet; convert it manually (see logsql/logql-to-logsql.md)",
-			}
-		}
-		names := s.Names()
-		if len(names) == 0 {
+		raw := strings.TrimSpace(strings.TrimPrefix(s.String(), syntax.OpPipe+" "+syntax.OpDrop))
+		raw = strings.TrimSpace(raw)
+		if raw == "" {
 			return nil
 		}
-		b.addPipe("delete " + strings.Join(names, ", "))
+		parts := splitCommaOutsideQuotes(raw)
+		if len(parts) == 0 {
+			return nil
+		}
+		var pendingNames []string
+		flushNames := func() {
+			if len(pendingNames) == 0 {
+				return
+			}
+			b.addPipe("delete " + strings.Join(pendingNames, ", "))
+			pendingNames = nil
+		}
+		for _, part := range parts {
+			item := strings.TrimSpace(part)
+			if item == "" {
+				continue
+			}
+			if strings.ContainsAny(item, "=!~") {
+				flushNames()
+				matcher, err := parseLabelMatcher(item)
+				if err != nil {
+					return newBadRequest("failed to parse LogQL drop label matcher", err)
+				}
+				cond, err := translateLabelsMatcher(matcher)
+				if err != nil {
+					return err
+				}
+				b.addPipe("format if (" + cond + ") \"\" as " + quoteFieldNameIfNeeded(matcher.Name))
+				continue
+			}
+			pendingNames = append(pendingNames, item)
+		}
+		flushNames()
 		return nil
 	case *syntax.KeepLabelsExpr:
 		// KeepLabelsExpr doesn't expose parsed items, so parse the string form.
@@ -171,25 +198,63 @@ func (b *logsQLBuilder) addStage(stage syntax.StageExpr) error {
 		if raw == "" {
 			return nil
 		}
-		parts := strings.Split(raw, ",")
-		var names []string
-		for _, p := range parts {
-			name := strings.TrimSpace(p)
-			if name == "" {
-				continue
-			}
-			if strings.ContainsAny(name, "=~!\"`") {
-				return &TranslationError{
-					Code:    http.StatusBadRequest,
-					Message: "conditional label keep isn't supported yet; convert it manually (see logsql/logql-to-logsql.md)",
-				}
-			}
-			names = append(names, name)
-		}
-		if len(names) == 0 {
+		parts := splitCommaOutsideQuotes(raw)
+		if len(parts) == 0 {
 			return nil
 		}
-		b.addPipe("keep " + strings.Join(names, ", "))
+		var unconditional []string
+		conditional := make([]*labels.Matcher, 0, len(parts))
+		nameSeen := make(map[string]struct{})
+		for _, part := range parts {
+			item := strings.TrimSpace(part)
+			if item == "" {
+				continue
+			}
+			if strings.ContainsAny(item, "=!~") {
+				matcher, err := parseLabelMatcher(item)
+				if err != nil {
+					return newBadRequest("failed to parse LogQL keep label matcher", err)
+				}
+				conditional = append(conditional, matcher)
+				continue
+			}
+			if strings.ContainsAny(item, "\"`") {
+				return &TranslationError{
+					Code:    http.StatusBadRequest,
+					Message: "invalid LogQL keep label; convert it manually (see logsql/logql-to-logsql.md)",
+				}
+			}
+			unconditional = append(unconditional, item)
+		}
+		if len(unconditional) > 0 {
+			keepNames := make([]string, 0, len(unconditional)+len(conditional))
+			for _, name := range unconditional {
+				if _, ok := nameSeen[name]; ok {
+					continue
+				}
+				nameSeen[name] = struct{}{}
+				keepNames = append(keepNames, name)
+			}
+			for _, matcher := range conditional {
+				name := matcher.Name
+				if _, ok := nameSeen[name]; ok {
+					continue
+				}
+				nameSeen[name] = struct{}{}
+				keepNames = append(keepNames, name)
+			}
+			if len(keepNames) > 0 {
+				b.addPipe("keep " + strings.Join(keepNames, ", "))
+			}
+		}
+		for _, matcher := range conditional {
+			cond, err := translateLabelsMatcher(matcher)
+			if err != nil {
+				return err
+			}
+			pattern := "<" + matcher.Name + ">"
+			b.addPipe("format if (" + cond + ") " + quoteString(pattern) + " as " + quoteFieldNameIfNeeded(matcher.Name))
+		}
 		return nil
 	case *syntax.LineFmtExpr:
 		b.addPipe("format " + quoteString(convertLokiTemplateToLogsQLPattern(s.Value)))
@@ -208,11 +273,24 @@ func (b *logsQLBuilder) addStage(stage syntax.StageExpr) error {
 			b.addPipe("rename " + strings.Join(renames, ", "))
 		}
 		return nil
-	case *syntax.JSONExpressionParserExpr, *syntax.LogfmtExpressionParserExpr:
-		return &TranslationError{
-			Code:    http.StatusBadRequest,
-			Message: "json/logfmt field extraction isn't supported yet; use plain '| json' or '| logfmt' and then filter by fields (see logsql/logql-to-logsql.md)",
+	case *syntax.JSONExpressionParserExpr:
+		pipes, err := translateLabelExtractionParser("unpack_json", s.Expressions)
+		if err != nil {
+			return err
 		}
+		for _, pipe := range pipes {
+			b.addPipe(pipe)
+		}
+		return nil
+	case *syntax.LogfmtExpressionParserExpr:
+		pipes, err := translateLabelExtractionParser("unpack_logfmt", s.Expressions)
+		if err != nil {
+			return err
+		}
+		for _, pipe := range pipes {
+			b.addPipe(pipe)
+		}
+		return nil
 	default:
 		return &TranslationError{
 			Code:    http.StatusBadRequest,
@@ -329,6 +407,122 @@ func translateLineFilterLeaf(ty lokilog.LineMatchType, match string) (string, er
 			Message: fmt.Sprintf("unsupported LogQL line filter type %v", ty),
 		}
 	}
+}
+
+func translateLabelExtractionParser(pipe string, exprs []lokilog.LabelExtractionExpr) ([]string, error) {
+	if len(exprs) == 0 {
+		return []string{pipe}, nil
+	}
+	exprOrder := make([]string, 0, len(exprs))
+	exprSeen := make(map[string]struct{}, len(exprs))
+	exprToIDs := make(map[string][]string, len(exprs))
+	keepExpr := make(map[string]bool, len(exprs))
+	for _, exp := range exprs {
+		expr := exp.Expression
+		if expr == "" {
+			return nil, &TranslationError{
+				Code:    http.StatusBadRequest,
+				Message: "empty json/logfmt extraction expression isn't supported; convert it manually (see logsql/logql-to-logsql.md)",
+			}
+		}
+		if !isSimpleExtractionField(expr) {
+			return nil, &TranslationError{
+				Code:    http.StatusBadRequest,
+				Message: "complex json/logfmt extraction expressions aren't supported yet; convert it manually (see logsql/logql-to-logsql.md)",
+			}
+		}
+		if _, ok := exprSeen[expr]; !ok {
+			exprSeen[expr] = struct{}{}
+			exprOrder = append(exprOrder, expr)
+		}
+		exprToIDs[expr] = append(exprToIDs[expr], exp.Identifier)
+		if exp.Identifier == expr {
+			keepExpr[expr] = true
+		}
+	}
+	fields := make([]string, 0, len(exprOrder))
+	for _, expr := range exprOrder {
+		fields = append(fields, quoteFieldNameIfNeeded(expr))
+	}
+	var pipes []string
+	pipeStr := pipe
+	if len(fields) > 0 {
+		pipeStr += " fields (" + strings.Join(fields, ", ") + ")"
+	}
+	pipes = append(pipes, pipeStr)
+	seenFormats := make(map[string]struct{}, len(exprs))
+	for _, expr := range exprOrder {
+		for _, id := range exprToIDs[expr] {
+			if id == expr {
+				continue
+			}
+			key := expr + "\x00" + id
+			if _, ok := seenFormats[key]; ok {
+				continue
+			}
+			seenFormats[key] = struct{}{}
+			pattern := "<" + expr + ">"
+			pipes = append(pipes, "format "+quoteString(pattern)+" as "+quoteFieldNameIfNeeded(id))
+		}
+	}
+	var drop []string
+	for _, expr := range exprOrder {
+		if keepExpr[expr] {
+			continue
+		}
+		drop = append(drop, quoteFieldNameIfNeeded(expr))
+	}
+	if len(drop) > 0 {
+		pipes = append(pipes, "delete "+strings.Join(drop, ", "))
+	}
+	return pipes, nil
+}
+
+func parseLabelMatcher(raw string) (*labels.Matcher, error) {
+	matchers, err := syntax.ParseMatchers("{"+raw+"}", false)
+	if err != nil {
+		return nil, err
+	}
+	if len(matchers) != 1 {
+		return nil, fmt.Errorf("expected 1 matcher; got %d", len(matchers))
+	}
+	return matchers[0], nil
+}
+
+func splitCommaOutsideQuotes(s string) []string {
+	var parts []string
+	start := 0
+	inQuotes := false
+	escaped := false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if escaped {
+			escaped = false
+			continue
+		}
+		if inQuotes && c == '\\' {
+			escaped = true
+			continue
+		}
+		if c == '"' {
+			inQuotes = !inQuotes
+			continue
+		}
+		if c == ',' && !inQuotes {
+			part := strings.TrimSpace(s[start:i])
+			if part != "" {
+				parts = append(parts, part)
+			}
+			start = i + 1
+		}
+	}
+	if start <= len(s) {
+		part := strings.TrimSpace(s[start:])
+		if part != "" {
+			parts = append(parts, part)
+		}
+	}
+	return parts
 }
 
 func translateLabelFilterer(f lokilog.LabelFilterer) (string, error) {
@@ -466,6 +660,20 @@ func isBareFieldName(s string) bool {
 	for i := 0; i < len(s); i++ {
 		c := s[i]
 		if c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '.' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func isSimpleExtractionField(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '.' || c == '-' {
 			continue
 		}
 		return false
