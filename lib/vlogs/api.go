@@ -45,7 +45,7 @@ func (a *API) SetHTTPClient(client *http.Client) {
 }
 
 func (a *API) Execute(ctx context.Context, qi *logsql.QueryInfo, params RequestParams) ([]byte, error) {
-	if a.ec.Endpoint != "" && params.Endpoint != "" {
+	if a.ec.Endpoint != "" && params.Endpoint != "" && a.ec.Endpoint != params.Endpoint {
 		return nil, &APIError{
 			Code:    http.StatusBadRequest,
 			Message: "endpoint can be set either in config or in request, not both",

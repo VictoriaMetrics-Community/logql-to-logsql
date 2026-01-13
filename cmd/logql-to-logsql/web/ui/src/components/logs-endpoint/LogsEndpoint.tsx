@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group.tsx";
+import {type ChangeEvent, useCallback} from "react";
 
 export interface LogsEndpointProps {
   readonly endpointUrl?: string;
@@ -19,7 +20,6 @@ export interface LogsEndpointProps {
   readonly onExecModeChange?: (mode: "translate" | "query") => void;
   readonly isLoading?: boolean;
   readonly endpointEnabled?: boolean;
-  readonly onEndpointEnabledChange?: (enabled: boolean) => void;
 }
 
 export function LogsEndpoint({
@@ -32,6 +32,27 @@ export function LogsEndpoint({
   isLoading,
   endpointEnabled,
 }: LogsEndpointProps) {
+  const changeExecModeHandler = useCallback((value: 'translate' | 'query') => {
+    if (
+        onExecModeChange &&
+        (value === "translate" || value === "query")
+    ) {
+      onExecModeChange(value);
+    }
+  }, [onExecModeChange]);
+  const endpointChangeHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    if (!onUrlChange) {
+      return
+    }
+    onUrlChange(e.target.value)
+  }, [onUrlChange])
+  const tokenChangeHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    if (!onTokenChange) {
+      return
+    }
+    onTokenChange(e.target.value)
+  }, [onTokenChange])
+
   return (
     <Card className={"w-full py-4 border-none shadow-none drop-shadow-none"}>
       <CardHeader>
@@ -44,14 +65,7 @@ export function LogsEndpoint({
           <ToggleGroup
             type="single"
             value={execMode}
-            onValueChange={(value) => {
-              if (
-                onExecModeChange &&
-                (value === "translate" || value === "query")
-              ) {
-                onExecModeChange(value);
-              }
-            }}
+            onValueChange={changeExecModeHandler}
             variant="outline"
           >
             <ToggleGroupItem value="translate" className={"cursor-pointer"}>
@@ -73,7 +87,7 @@ export function LogsEndpoint({
               value={endpointUrl}
               type={"url"}
               placeholder={"https://play-vmlogs.victoriametrics.com"}
-              onChange={(e) => onUrlChange && onUrlChange(e.target.value)}
+              onChange={endpointChangeHandler}
             />
           </div>
           <div className={"flex flex-col gap-1 sm:w-1/4"}>
@@ -83,7 +97,7 @@ export function LogsEndpoint({
               id={"bearerToken"}
               value={bearerToken}
               type={"password"}
-              onChange={(e) => onTokenChange && onTokenChange(e.target.value)}
+              onChange={tokenChangeHandler}
             />
           </div>
         </CardContent>

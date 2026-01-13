@@ -1,4 +1,4 @@
-import Editor from "@monaco-editor/react";
+import Editor, {type OnMount} from "@monaco-editor/react";
 import {
   Card,
   CardAction,
@@ -36,6 +36,7 @@ import {
 } from "@/components/date-time-range";
 import { parseDate } from "chrono-node";
 import { languageConfiguration, monarchlanguage } from '@grafana/monaco-logql';
+import {editor} from "monaco-editor";
 
 export interface LogQLEditorProps {
   readonly onRun?: (logql: string, start?: number, end?: number) => void;
@@ -57,26 +58,26 @@ export function LogQLEditor({
   className,
 }: LogQLEditorProps) {
   const [value, setValue] = useState<string>(DEFAULT_EXAMPLE_ID);
-  const [logql, setLogql] = useState("");
+  const [logql, setLogql] = useState<undefined | string>("");
   const [timeRange, setTimeRange] = useState<DateTimeRangeValue>({
     from: "1h ago",
     to: "now",
   });
   const dateStart = useMemo(
     () => (timeRange?.from ? parseDate(timeRange?.from)?.valueOf() : undefined),
-    [timeRange.from],
+    [timeRange?.from],
   );
   const dateEnd = useMemo(
     () => (timeRange?.to ? parseDate(timeRange?.to)?.valueOf() : undefined),
-    [timeRange.to],
+    [timeRange?.to],
   );
 
   const runQuery = useCallback(
-    (text?: string) => {
+    (text?: any) => {
       if (!onRun || isLoading) {
         return;
       }
-      const current = typeof text === "string" ? text : logql;
+      const current = typeof text === "string" ? text : (logql ?? '');
       onRun(current, dateStart, dateEnd);
     },
     [onRun, isLoading, logql, dateStart, dateEnd],
@@ -88,6 +89,67 @@ export function LogQLEditor({
       setLogql(example.logql ?? "");
     }
   }, [value]);
+
+  const initEditorHandler: OnMount = useCallback((editorInstance, monaco) => {
+    monaco.languages.register({ id: "logql" });
+    monaco.languages.setMonarchTokensProvider("logql", monarchlanguage);
+    monaco.languages.setLanguageConfiguration("logql", languageConfiguration);
+    monaco.languages.registerCompletionItemProvider("logql", {
+      provideCompletionItems: () => {
+        const suggestions = COMPLETIONS.map((label) => ({
+          label,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: label,
+          range: {
+            startLineNumber: 1,
+            endLineNumber: 1,
+            startColumn: 1,
+            endColumn: 1,
+          },
+          detail: "LogQL snippet",
+          documentation: "LogQL snippet",
+          sortText: label,
+          filterText: label,
+        }));
+        return { suggestions };
+      },
+    });
+
+    const executeFromEditor = () =>
+        runQuery(editorInstance.getValue() ?? "");
+    const keybindings = [
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+      monaco.KeyMod.Shift | monaco.KeyCode.Enter,
+      monaco.KeyMod.WinCtrl | monaco.KeyCode.Enter,
+      monaco.KeyMod.CtrlCmd |
+      monaco.KeyMod.Shift |
+      monaco.KeyCode.Enter,
+    ];
+    keybindings.forEach((binding) => {
+      editorInstance.addCommand(binding, executeFromEditor);
+    });
+  }, [])
+
+  const editorOptions = useMemo(() => ({
+    readOnly: isLoading,
+    minimap: { enabled: false },
+    fontSize: 12,
+    lineNumbers: "off",
+    scrollBeyondLastLine: false,
+    selectionHighlight: !isLoading,
+  } as editor.IStandaloneEditorConstructionOptions), [isLoading])
+
+  const examples = useMemo(() => (
+    EXAMPLES.map((example) => (
+      <SelectItem
+          value={example.id}
+          key={example.id}
+          className={"cursor-pointer"}
+      >
+        Example: {example.title}
+      </SelectItem>
+      ))
+  ), [])
 
   return (
     <Card className={cn("w-full h-full py-4 border-none shadow-none drop-shadow-none", className)}>
@@ -101,15 +163,7 @@ export function LogQLEditor({
               <SelectValue placeholder="Select example" />
             </SelectTrigger>
             <SelectContent>
-              {EXAMPLES.map((example) => (
-                <SelectItem
-                  value={example.id}
-                  key={example.id}
-                  className={"cursor-pointer"}
-                >
-                  Example: {example.title}
-                </SelectItem>
-              ))}
+              {examples}
             </SelectContent>
           </Select>
           {execMode === 'query' &&
@@ -118,7 +172,7 @@ export function LogQLEditor({
           <Button
             disabled={isLoading}
             className={"cursor-pointer max-sm:w-full"}
-            onClick={() => runQuery()}
+            onClick={runQuery}
           >
             {isLoading ? <Spinner /> : <PlayIcon />}
             Execute
@@ -137,55 +191,10 @@ export function LogQLEditor({
           defaultLanguage="logql"
           language="logql"
           theme="vs-light"
-          value={logql}
-          options={{
-            readOnly: isLoading,
-            minimap: { enabled: false },
-            fontSize: 12,
-            lineNumbers: "off",
-            scrollBeyondLastLine: false,
-            selectionHighlight: !isLoading,
-          }}
-          onChange={(next) => setLogql(next ?? "")}
-          onMount={(editorInstance, monaco) => {
-            monaco.languages.register({ id: "logql" });
-            monaco.languages.setMonarchTokensProvider("logql", monarchlanguage);
-            monaco.languages.setLanguageConfiguration("logql", languageConfiguration);
-            monaco.languages.registerCompletionItemProvider("logql", {
-              provideCompletionItems: () => {
-                const suggestions = COMPLETIONS.map((label) => ({
-                  label,
-                  kind: monaco.languages.CompletionItemKind.Keyword,
-                  insertText: label,
-                  range: {
-                    startLineNumber: 1,
-                    endLineNumber: 1,
-                    startColumn: 1,
-                    endColumn: 1,
-                  },
-                  detail: "LogQL snippet",
-                  documentation: "LogQL snippet",
-                  sortText: label,
-                  filterText: label,
-                }));
-                return { suggestions };
-              },
-            });
-
-            const executeFromEditor = () =>
-              runQuery(editorInstance.getValue() ?? "");
-            const keybindings = [
-              monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
-              monaco.KeyMod.Shift | monaco.KeyCode.Enter,
-              monaco.KeyMod.WinCtrl | monaco.KeyCode.Enter,
-              monaco.KeyMod.CtrlCmd |
-                monaco.KeyMod.Shift |
-                monaco.KeyCode.Enter,
-            ];
-            keybindings.forEach((binding) => {
-              editorInstance.addCommand(binding, executeFromEditor);
-            });
-          }}
+          value={logql ?? ''}
+          options={editorOptions}
+          onChange={setLogql}
+          onMount={initEditorHandler}
         />
       </CardContent>
       {error && (
