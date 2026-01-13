@@ -37,7 +37,7 @@ This is the easiest way to get started without needing to install Go or build fr
 
 ```bash
 docker run -d --name logql-to-logsql -p 8080:8080 -v /data/views \
-  ghcr.io/victoriaMetrics-community/logql-to-logsql:latest
+  ghcr.io/victoriametrics-community/logql-to-logsql:latest
 ```
 
 Here is the example with specified [config file](#configuration):
@@ -54,7 +54,7 @@ EOL
 docker run -d --name logql-to-logsql -p 8080:8080 \
   -v /home/logql-to-logsql/data/views \
   -v ./config.json:/home/logql-to-logsql/config.json:ro \
-  ghcr.io/victoriaMetrics-community/logql-to-logsql:latest \
+  ghcr.io/victoriametrics-community/logql-to-logsql:latest \
   --config=config.json
 ```
 
