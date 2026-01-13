@@ -23,14 +23,14 @@ const formatExecutionTime = (ms: number): string => {
 };
 
 export function Main() {
-  const [endpointEnabled, setEndpointEnabled] = useState<boolean>(true);
+  const [endpointEnabled, setEndpointEnabled] = useState<boolean>(false);
   const [endpointUrl, setEndpointUrl] = useState<string>(
     "https://play-vmlogs.victoriametrics.com",
   );
   const [bearerToken, setBearerToken] = useState<string>("");
   const [results, setResults] = useState<unknown>();
   const [query, setQuery] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [limit, setLimit] = useState<number>(0);
@@ -44,9 +44,18 @@ export function Main() {
         if (data.endpoint) {
           setEndpointUrl(data.endpoint);
           setEndpointEnabled(false);
+        } else {
+          setEndpointUrl('');
+          setEndpointEnabled(true);
         }
         setLimit(data.limit || 0);
         setLoading(false);
+      })
+      .catch(error => {
+        toast.error("config loading error:", {
+          description: error?.error ?? error?.message ?? error,
+          duration: 10000,
+        });
       });
   }, []);
 
@@ -55,25 +64,6 @@ export function Main() {
       setLoading(true);
       setError("");
       setSuccess("");
-
-      const reqBody: {
-        logql: string;
-        endpoint?: string;
-        bearerToken?: string;
-        start?: string;
-        end?: string;
-        execMode?: "translate" | "query";
-      } = {
-        logql,
-        start: start ? `${start}` : undefined,
-        end: end ? `${end}` : undefined,
-        execMode: execMode,
-      };
-      if (endpointEnabled) {
-        reqBody.endpoint = endpointUrl;
-        reqBody.bearerToken = bearerToken;
-      }
-
       const execStart = performance.now();
       const resp = await fetch(`/api/v1/logql-to-logsql`, {
         method: "POST",
@@ -81,16 +71,23 @@ export function Main() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${bearerToken}`,
         },
-        body: JSON.stringify(reqBody),
+        body: JSON.stringify({
+          logql,
+          start: start ? `${start}` : undefined,
+          end: end ? `${end}` : undefined,
+          execMode: execMode,
+          endpoint: endpointEnabled ? endpointUrl : undefined,
+          bearerToken: endpointEnabled ? bearerToken : undefined,
+        }),
       });
       const body = await resp.json();
       if (resp.status !== 200) {
-        setError(body.error);
+        setError(body.error ?? body.message ?? body);
         setResults(undefined);
         setQuery("");
         setLoading(false);
         toast.error("execute error:", {
-          description: body.error,
+          description: body.error ?? body.message ?? body,
           duration: 10000,
         });
         return;
