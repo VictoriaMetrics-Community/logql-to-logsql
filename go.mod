@@ -4,7 +4,7 @@ go 1.25.5
 
 require (
 	github.com/grafana/loki/v3 v3.6.3
-	github.com/prometheus/common v0.67.4
+	github.com/prometheus/common v0.67.5
 	github.com/prometheus/prometheus v0.309.1
 )
 
